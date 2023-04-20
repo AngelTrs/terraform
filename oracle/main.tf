@@ -36,22 +36,26 @@ variable "instance_shape" {
   # Always Free Instance Eligible Shapes
   default = "VM.Standard.A1.Flex" # Or VM.Standard.E2.1.Micro
 }
-variable "instance_ocpus" { default = 1 }
-variable "instance_shape_config_memory_in_gbs" { default = 6 }
-variable "image_source_id" { 
-  # Canonical-Ubuntu-18.04-aarch64-2022.03.02-0
-  default = "ocid1.image.oc1.iad.aaaaaaaadccmxiexvxgfkrnc4lsfsmeqyjaimxdz6jud7s24gmf6g2dddpna"
-
-  # Canonical-Ubuntu-20.04-aarch64-2022.08.15-0 for us-ashburn-1
-  # = "ocid1.image.oc1.iad.aaaaaaaant4oipiblsefokfvssw76b2tr2p6ckr6yzsuf4kxijvpdlxsydoq"
+variable "instance_ocpus" { 
+  default = 1
 }
-
-variable "ssh_public_key1" {}
-variable "ssh_public_key2" {}
+variable "instance_shape_config_memory_in_gbs" {
+  default = 6
+}
+variable "image_source_id_rocky" {}
+variable "image_source_id_ubuntu" {}
+variable "bootVolume_id" {}
+variable "ssh_public_rocky" {}
+variable "ssh_public_uptime" {}
 
 data "oci_identity_availability_domain" "ad1" {
   compartment_id = var.compartment_ocid
   ad_number = 1
+}
+
+data "oci_identity_availability_domain" "ad2" {
+  compartment_id = var.compartment_ocid
+  ad_number = 2
 }
 
 data "oci_identity_availability_domain" "ad3" {
@@ -59,14 +63,14 @@ data "oci_identity_availability_domain" "ad3" {
   ad_number = 3
 }
 
-resource "oci_core_instance" "svc-remote" {
+resource "oci_core_instance" "rocky" {
   #Required
-  availability_domain = data.oci_identity_availability_domain.ad1.name
+  availability_domain = data.oci_identity_availability_domain.ad3.name
   compartment_id = var.compartment_ocid 
   shape = var.instance_shape
 
   #Optional
-  display_name = "svc-remote-instance"
+  display_name = "rocky"
   shape_config {
     memory_in_gbs             = var.instance_shape_config_memory_in_gbs
     ocpus                     = var.instance_ocpus
@@ -74,17 +78,17 @@ resource "oci_core_instance" "svc-remote" {
 
   source_details {
     source_type = "image"
-    source_id = var.image_source_id
+    source_id = var.image_source_id_rocky
   }
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.lab_public.id
-    display_name     = "svc-remote-instance"
+    display_name     = "rocky"
     assign_public_ip = true
   }
 
   metadata = {
-    ssh_authorized_keys = var.ssh_public_key1
+    ssh_authorized_keys = var.ssh_public_rocky
   }
 }
 
@@ -103,7 +107,7 @@ resource "oci_core_instance" "uptime" {
 
   source_details {
     source_type = "image"
-    source_id = var.image_source_id
+    source_id = var.image_source_id_ubuntu
   }
 
   create_vnic_details {
@@ -113,6 +117,6 @@ resource "oci_core_instance" "uptime" {
   }
 
   metadata = {
-    ssh_authorized_keys = var.ssh_public_key2
+    ssh_authorized_keys = var.ssh_public_uptime
   }
 }
