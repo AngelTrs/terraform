@@ -34,6 +34,10 @@ resource "proxmox_vm_qemu" "router" {
     model         = "virtio"
     bridge        = "vmbr4"
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 variable "ci_ipconfig" {
