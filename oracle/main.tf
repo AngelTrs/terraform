@@ -120,3 +120,20 @@ resource "oci_core_instance" "uptime" {
     ssh_authorized_keys = var.ssh_public_uptime
   }
 }
+
+output "instance_rocky_id" {
+  value       = oci_core_instance.rocky.id
+  description = "OCID of rocky instance"
+}
+output "instance_rocky_public_ip" {
+  value       = oci_core_instance.rocky.public_ip
+  description = "Public IP address of rocky instance"
+}
+output "instance_uptime_id" {
+  value       = oci_core_instance.uptime.id
+  description = "OCID of uptime instance"
+}
+output "instance_uptime_public_ip" {
+  value       = oci_core_instance.uptime.public_ip
+  description = "Public IP address of uptime instance"
+}
