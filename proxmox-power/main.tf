@@ -38,45 +38,6 @@ variable "ci_custom_k8" {
   default = "user=local:snippets/power-debian-userconfig.yaml"
 }
 
-resource "proxmox_vm_qemu" "k8" {
-  name            = "k8"
-  target_node     = "power"
-  vmid            = "101"
-  desc            = "vm for learning kubernetes"
-  clone           = "debian11-cloud"
-  agent           = 1
-  
-  cpu             = "host"
-  sockets         = 1
-  cores           = 1
-  memory          = 1024
-
-  disk {
-    slot          = 0
-    size          = "4G"
-    type          = "scsi"
-    storage       = "local-lvm"
-  }
-
-  network {
-    model         = "virtio"
-    bridge        = "vmbr0"
-  }
-
-  vga {
-    type          = "serial0"
-  }
-
-  serial {
-    id            = 0
-    type          = "socket"
-  }
-
-  os_type         = "cloud-init"
-  ipconfig0       = var.ci_ipconfig_k8
-  nameserver      = var.ci_nameserver
-  cicustom        = var.ci_custom_k8
-}
 
 variable "dev_password" {
   sensitive = true
@@ -112,4 +73,3 @@ resource "proxmox_lxc" "dev-doe" {
   hostname        = "CT600"
   onboot          = true
 }
-
