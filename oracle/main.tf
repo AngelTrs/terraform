@@ -42,11 +42,12 @@ variable "instance_ocpus" {
 variable "instance_shape_config_memory_in_gbs" {
   default = 6
 }
-variable "image_source_id_rocky" {}
-variable "image_source_id_ubuntu" {}
-variable "bootVolume_id" {}
-variable "ssh_public_rocky" {}
-variable "ssh_public_uptime" {}
+variable "image_source_id" {
+  type = map(string)
+}
+variable "ssh_key" {
+  type = map(string)
+}
 
 data "oci_identity_availability_domain" "ad1" {
   compartment_id = var.compartment_ocid
@@ -64,13 +65,19 @@ data "oci_identity_availability_domain" "ad3" {
 }
 
 resource "oci_core_instance" "rocky" {
+
+  for_each = {
+    rocky = data.oci_identity_availability_domain.ad3.name
+    balboa = data.oci_identity_availability_domain.ad1.name
+  }
+
   #Required
-  availability_domain = data.oci_identity_availability_domain.ad3.name
+  availability_domain = each.value
   compartment_id = var.compartment_ocid 
   shape = var.instance_shape
 
   #Optional
-  display_name = "rocky"
+  display_name = each.key
   shape_config {
     memory_in_gbs             = var.instance_shape_config_memory_in_gbs
     ocpus                     = var.instance_ocpus
@@ -78,17 +85,17 @@ resource "oci_core_instance" "rocky" {
 
   source_details {
     source_type = "image"
-    source_id = var.image_source_id_rocky
+    source_id = var.image_source_id.rocky
   }
 
   create_vnic_details {
     subnet_id        = oci_core_subnet.lab_public.id
-    display_name     = "rocky"
+    display_name     = each.key
     assign_public_ip = true
   }
 
   metadata = {
-    ssh_authorized_keys = var.ssh_public_rocky
+    ssh_authorized_keys = var.ssh_key.svchost
   }
 }
 
@@ -107,7 +114,7 @@ resource "oci_core_instance" "uptime" {
 
   source_details {
     source_type = "image"
-    source_id = var.image_source_id_ubuntu
+    source_id = var.image_source_id.ubuntu18
   }
 
   create_vnic_details {
@@ -117,17 +124,21 @@ resource "oci_core_instance" "uptime" {
   }
 
   metadata = {
-    ssh_authorized_keys = var.ssh_public_uptime
+    ssh_authorized_keys = var.ssh_key.all
   }
 }
 
 output "instance_rocky_id" {
-  value       = oci_core_instance.rocky.id
-  description = "OCID of rocky instance"
+  value = {
+    for k, v in oci_core_instance.rocky : k => v.id
+  }
+  description = "OCID of rocky instances"
 }
 output "instance_rocky_public_ip" {
-  value       = oci_core_instance.rocky.public_ip
-  description = "Public IP address of rocky instance"
+  value = {
+    for k, v in oci_core_instance.rocky : k => v.public_ip
+  }
+  description = "Public IP address of rocky instances"
 }
 output "instance_uptime_id" {
   value       = oci_core_instance.uptime.id
