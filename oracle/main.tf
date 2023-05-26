@@ -69,6 +69,7 @@ resource "oci_core_instance" "rocky" {
   for_each = {
     rocky = data.oci_identity_availability_domain.ad3.name
     balboa = data.oci_identity_availability_domain.ad1.name
+    adrian = data.oci_identity_availability_domain.ad2.name
   }
 
   #Required
@@ -99,35 +100,6 @@ resource "oci_core_instance" "rocky" {
   }
 }
 
-resource "oci_core_instance" "uptime" {
-  #Required
-  availability_domain = data.oci_identity_availability_domain.ad3.name
-  compartment_id = var.compartment_ocid 
-  shape = var.instance_shape
-
-  #Optional
-  display_name = "uptime-instance"
-  shape_config {
-    memory_in_gbs             = var.instance_shape_config_memory_in_gbs
-    ocpus                     = var.instance_ocpus
-  }
-
-  source_details {
-    source_type = "image"
-    source_id = var.image_source_id.ubuntu18
-  }
-
-  create_vnic_details {
-    subnet_id        = oci_core_subnet.lab_public.id
-    display_name     = "uptime-instance"
-    assign_public_ip = true
-  }
-
-  metadata = {
-    ssh_authorized_keys = var.ssh_key.all
-  }
-}
-
 output "instance_rocky_id" {
   value = {
     for k, v in oci_core_instance.rocky : k => v.id
@@ -139,12 +111,4 @@ output "instance_rocky_public_ip" {
     for k, v in oci_core_instance.rocky : k => v.public_ip
   }
   description = "Public IP address of rocky instances"
-}
-output "instance_uptime_id" {
-  value       = oci_core_instance.uptime.id
-  description = "OCID of uptime instance"
-}
-output "instance_uptime_public_ip" {
-  value       = oci_core_instance.uptime.public_ip
-  description = "Public IP address of uptime instance"
 }
