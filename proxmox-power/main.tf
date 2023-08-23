@@ -18,6 +18,12 @@ resource "proxmox_vm_qemu" "svchost" {
     model     = "virtio"
   }
 
+  disk {
+    type      = "scsi"
+    storage   = "local-lvm"
+    size      = "64G"
+  }
+
   lifecycle {
     prevent_destroy = true
   }
@@ -71,5 +77,65 @@ resource "proxmox_lxc" "dev-doe" {
   start           = true
   unprivileged    = true
   hostname        = "CT600"
+  onboot          = true
+}
+
+resource "proxmox_lxc" "dev-at" {
+  # required
+  target_node     = "power"
+
+  rootfs {
+    storage       = "local-lvm"
+    size          = "10G"
+  }
+
+  network {
+    name          = "eth0"
+    bridge        = "vmbr0"
+    ip            = "192.168.1.161/24"
+    gw            = "192.168.1.1"
+  }
+  
+  # optional
+  vmid            = 601
+  cores           = 1
+  memory          = 512
+  swap            = 512
+  ostemplate      = "local:vztmpl/debian-11-turnkey-lamp_17.1-1_amd64.tar.gz"
+  password        = var.dev_password
+  ssh_public_keys = var.dev_ssh-pub-key
+  start           = true
+  unprivileged    = true
+  hostname        = "CT601"
+  onboot          = true
+}
+
+resource "proxmox_lxc" "dev-fin" {
+  # required
+  target_node     = "power"
+
+  rootfs {
+    storage       = "local-lvm"
+    size          = "10G"
+  }
+
+  network {
+    name          = "eth0"
+    bridge        = "vmbr0"
+    ip            = "192.168.1.162/24"
+    gw            = "192.168.1.1"
+  }
+  
+  # optional
+  vmid            = 602
+  cores           = 1
+  memory          = 512
+  swap            = 512
+  ostemplate      = "local:vztmpl/debian-11-turnkey-laravel_17.1-1_amd64.tar.gz"
+  password        = var.dev_password
+  ssh_public_keys = var.dev_ssh-pub-key
+  start           = true
+  unprivileged    = true
+  hostname        = "CT602"
   onboot          = true
 }
